@@ -81,9 +81,13 @@ public class Window {
             // Throw an exception if window creation fails.
             throw new IllegalStateException("Failed to create the GLFW window.");
         }
-
+        // Registers a callback function for mouse position changes
         glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback);
+
+        // Registers a callback function for mouse button actions (press and release)
         glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
+
+        // Registers a callback function for mouse scroll actions
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
 
         // Make the OpenGL context current.
