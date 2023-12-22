@@ -18,6 +18,9 @@ public class Window {
     // The window handle.
     private long glfwWindow;
 
+    private float r, g, b, a;
+    private boolean fadeToBlack = false;
+
     // Singleton pattern to ensure only one window instance.
     private static Window window = null;
 
@@ -26,6 +29,10 @@ public class Window {
         this.width = 1920;  // Default window width.
         this.height = 1080; // Default window height.
         this.title = "Mario"; // Default window title.
+        r = 1;
+        b = 1;
+        g = 1;
+        a = 1;
     }
 
     // Public method to get the singleton window instance.
@@ -90,6 +97,8 @@ public class Window {
         // Registers a callback function for mouse scroll actions
         glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
 
+        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+
         // Make the OpenGL context current.
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync.
@@ -116,8 +125,18 @@ public class Window {
             glfwPollEvents();
 
             // Set the clear color and clear the framebuffer.
-            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            if (fadeToBlack) {
+                r = Math.max(r - 0.01f, 0);
+                g = Math.max(g - 0.01f, 0);
+                b = Math.max(b - 0.01f, 0);
+            }
+
+            if (KeyListener.isKeyPressed(GLFW_KEY_SPACE)) {
+                fadeToBlack = true;
+            }
 
             // Swap the color buffers.
             glfwSwapBuffers(glfwWindow);
