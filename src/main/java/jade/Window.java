@@ -4,6 +4,7 @@ package jade;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import util.Time;
 
 // Static import to make the code more readable by avoiding constant class qualifications.
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -18,11 +19,13 @@ public class Window {
     // The window handle.
     private long glfwWindow;
 
-    private float r, g, b, a;
+    public float r, g, b, a;
     private boolean fadeToBlack = false;
 
     // Singleton pattern to ensure only one window instance.
     private static Window window = null;
+
+    private static Scene currentScene;
 
     // Private constructor for singleton pattern.
     private Window() {
@@ -33,6 +36,22 @@ public class Window {
         b = 1;
         g = 1;
         a = 1;
+    }
+
+    public static void changeScene (int newScene){
+        switch (newScene) {
+            case 0:
+                currentScene = new LevelEditorScene();
+                currentScene.init();
+                break;
+            case 1:
+                currentScene = new LevelScene();
+                currentScene.init();
+                break;
+            default:
+                assert false : "Unknown scene '" + newScene + "'";
+                break;
+        }
     }
 
     // Public method to get the singleton window instance.
@@ -77,10 +96,10 @@ public class Window {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // Window will stay hidden after creation.
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // Window will be resizable.
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); // Window will be maximized.
-        /*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // Create the GLFW window.
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
@@ -101,6 +120,7 @@ public class Window {
 
         // Make the OpenGL context current.
         glfwMakeContextCurrent(glfwWindow);
+
         // Enable v-sync.
         glfwSwapInterval(1);
 
@@ -113,10 +133,16 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+
+        Window.changeScene(0);
     }
 
     // The main game loop.
     public void loop() {
+        float beginTime = Time.getTime();
+        float endTime;
+        float dt = -1.0f;
+
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(glfwWindow)) {
@@ -128,18 +154,16 @@ public class Window {
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            if (fadeToBlack) {
-                r = Math.max(r - 0.01f, 0);
-                g = Math.max(g - 0.01f, 0);
-                b = Math.max(b - 0.01f, 0);
-            }
-
-            if (KeyListener.isKeyPressed(GLFW_KEY_SPACE)) {
-                fadeToBlack = true;
+            if (dt >= 0) {
+                currentScene.update(dt);
             }
 
             // Swap the color buffers.
             glfwSwapBuffers(glfwWindow);
+
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
         }
     }
 }
